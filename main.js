@@ -581,6 +581,7 @@ async function game(...clues) {
   }
 
   await console.log('Calculating...');
+  await scrollToBottom();
   const topGuesses = bestGuess_smallSolutionSpace_opt(possibleAnswers);
 
   await console.log('Best next guesses:');
@@ -619,7 +620,16 @@ async function autoplay(answer = answers[rand(answers.length - 1)]) {
       `done in %c${tries}%c ${tries > 1 ? 'tries' : 'try'}, ${
           Math.round(performance.now() - start)}ms`,
       'color:#9575cd', 'color:unset');
+  await scrollToBottom();
   return tries;
+}
+
+async function scrollToBottom() {
+  window.scrollTo({
+    top: Number.MAX_SAFE_INTEGER,
+    behavior: 'smooth',
+  });
+  await new Promise(requestAnimationFrame);
 }
 
 const clueCSS = {
