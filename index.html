@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KokoWordle</title>
+  <style>
+    body {
+      background-color: black;
+    }
+
+    body,
+    a {
+      color: white;
+    }
+
+    body,
+    a,
+    button,
+    input {
+      font-family: monospace;
+    }
+
+    .container {
+      max-width: 600px;
+      min-height: calc(100vh / 2);
+      margin: auto;
+      padding: 16px;
+      padding-top: 1px;
+      border-radius: 8px;
+      background-color: #101111;
+    }
+
+    @media (max-width: 650px) {
+      body {
+        margin: 0;
+      }
+
+      .container {
+        margin: 0;
+        border-radius: 0;
+      }
+    }
+
+    #solution-input {
+      width: 64px;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>KokoWordle Solver</h1>
+    <p>
+      Based on the <a href="https://www.nytimes.com/games/wordle/index.html">official Wordle Game</a>
+    </p>
+    <p>
+      solution = <input type="text" id="solution-input">
+      <button id="rand-solution">Randomize</button>
+    </p>
+    <p>
+      <button id="auto-solve">Solve!</button>
+    </p>
+    <hr>
+    <div id="bot-output"></div>
+  </div>
+  <script src="word-lists.js"></script>
+  <script src="main.js"></script>
+</body>
