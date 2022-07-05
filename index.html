@@ -30,11 +30,19 @@
       padding: 16px;
       padding-top: 1px;
       border-radius: 8px;
-      background-color: #101111;
+      background-color: #222020;
     }
 
     .separator {
       margin: 16px 0px;
+    }
+
+    .bubble {
+      background-color: black;
+      border-radius: 8px;
+      border: 1px solid grey;
+      margin-top: 16px;
+      padding: 8px;
     }
 
     @media (max-width: 650px) {
@@ -58,8 +66,7 @@
 
     #loading-spinner {
       position: fixed;
-      background-color: black;
-      opacity: 0.5;
+      background-color: rgba(0, 0, 0, 0.7);
       top: 0;
       left: 0;
       width: 100vw;
@@ -73,6 +80,8 @@
     /* Loading spinner from https://loading.io/css/ */
 
     .lds-grid {
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
       display: inline-block;
       position: absolute;
       width: 80px;

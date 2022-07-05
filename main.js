@@ -31,7 +31,11 @@ randSolution.click();
 autoSolve.addEventListener('click', solve);
 
 const nativeLog = console.log;
+let bubble = null;
 console.log = async function(...args) {
+  if (bubble == null) {
+    bubble = newBubble();
+  }
   const div = document.createElement('div');
   if (args[0].includes('%c')) {
     const spans = args[0].split('%c').map((str, i) => {
@@ -42,18 +46,26 @@ console.log = async function(...args) {
       }
     });
     div.innerHTML = spans.join('');
+    bubble.append(div);
   } else {
     const output = args.join(' ');
     if (output === '') {
-      div.innerHTML = '&nbsp;';
+      bubble = newBubble();
     } else {
       div.innerText = output;
+      bubble.append(div);
     }
   }
-  botOutput.append(div);
   nativeLog(...args);
   await new Promise(requestAnimationFrame);
 };
+
+function newBubble() {
+  const bubble = document.createElement('div');
+  bubble.classList.add('bubble');
+  botOutput.append(bubble);
+  return bubble;
+}
 
 let inProgress = false;
 async function solve() {
@@ -74,7 +86,8 @@ async function solve() {
     return;
   }
   botOutput.classList = '';
-  botOutput.innerText = '';
+  botOutput.innerHTML = '';
+  bubble = null;
 
   inProgress = true;
   loadingSpinner.classList.remove('hidden');
@@ -594,31 +607,6 @@ function distributeRange(start, end) {
   }
 }
 
-a1 = [
-  'BOBBY', 'BONGO', 'BONUS', 'BOOBY', 'BOOST', 'BOOTH', 'BOOTY', 'BOOZY',
-  'BOSOM', 'BOSSY', 'BOTCH', 'BOUGH', 'BOUND', 'BUDDY', 'BUGGY', 'BUNCH',
-  'BUNNY', 'BUSHY', 'BUTCH', 'BUXOM', 'CHOCK', 'CHUCK', 'CHUMP', 'CHUNK',
-  'COMFY', 'CONCH', 'CONDO', 'COUCH', 'COUGH', 'COUNT', 'DODGY', 'DONUT',
-  'DOUBT', 'DOUGH', 'DOWDY', 'DOWNY', 'DUCHY', 'DUMMY', 'DUMPY', 'DUSKY',
-  'DUSTY', 'DUTCH', 'FOCUS', 'FOGGY', 'FOUND', 'FUNKY', 'FUNNY', 'FUSSY',
-  'FUZZY', 'GHOST', 'GOODY', 'GOOFY', 'GUMBO', 'GUMMY', 'GUPPY', 'GUSTO',
-  'GUSTY', 'GYPSY', 'HOBBY', 'HOUND', 'HOWDY', 'HUMPH', 'HUMUS', 'HUNCH',
-  'HUNKY', 'HUSKY', 'HUSSY', 'HUTCH', 'JOUST', 'JUMBO', 'JUMPY', 'JUNTO',
-  'KNOCK', 'KNOWN', 'MONTH', 'MOODY', 'MOSSY', 'MOTTO', 'MOUND', 'MOUNT',
-  'MOUTH', 'MUCKY', 'MUCUS', 'MUDDY', 'MUMMY', 'MUNCH', 'MUSHY', 'MUSKY',
-  'MUSTY', 'NOTCH', 'NUTTY', 'NYMPH', 'OUGHT', 'OUTDO', 'OUTGO', 'PHONY',
-  'PHOTO', 'POOCH', 'POPPY', 'POUCH', 'POUND', 'POUTY', 'PUDGY', 'PUFFY',
-  'PUNCH', 'PUPPY', 'PUSHY', 'PUTTY', 'PYGMY', 'QUOTH', 'SCOFF', 'SCOOP',
-  'SCOUT', 'SHOCK', 'SHOOK', 'SHOOT', 'SHOUT', 'SHOWN', 'SHOWY', 'SHUCK',
-  'SHUNT', 'SHUSH', 'SKUNK', 'SMOCK', 'SMOKY', 'SNOOP', 'SNOUT', 'SNOWY',
-  'SNUCK', 'SNUFF', 'SOGGY', 'SOOTH', 'SOOTY', 'SOUND', 'SOUTH', 'SPOOF',
-  'SPOOK', 'SPOON', 'SPOUT', 'SPUNK', 'STOCK', 'STOMP', 'STONY', 'STOOD',
-  'STOOP', 'STOUT', 'STUCK', 'STUDY', 'STUFF', 'STUMP', 'STUNG', 'STUNK',
-  'STUNT', 'SUNNY', 'SWOON', 'SWOOP', 'SWUNG', 'SYNOD', 'THONG', 'THUMB',
-  'THUMP', 'TODDY', 'TOOTH', 'TOUCH', 'TOUGH', 'UNCUT', 'VOUCH', 'WHOOP',
-  'WOODY', 'WOOZY', 'WOUND', 'YOUNG', 'YOUTH'
-];
-
 /**
  * Top 47 guesses from the output of bestGuess_smallSolutionSpace_opt() sorted
  * by avgSolutions / numGroups.
@@ -644,7 +632,7 @@ function getFirstGuess() {
   let x = 0;
   // Go until we *just* pass r, then return the guess at index i.
   while (i < FIRST_GUESSES.length) {
-    x += 47 - i;
+    x += FIRST_GUESSES.length - i;
     if (x > r) {
       return FIRST_GUESSES[i];
     }
@@ -702,8 +690,6 @@ async function autoplay(answer = answers[rand(answers.length - 1)]) {
   await logGuess(guess, clues[0]);
   let tries = 1;
   while (guess !== answer) {
-    console.log('');
-    console.log('- - - - - - -');
     console.log('');
     guess = await game(...clues);
     clues.push(getClue(answer, guess));
