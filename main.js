@@ -2,10 +2,13 @@ shuffle(answers);
 shuffle(guesses);
 console.log('loaded', Math.round(performance.now()), 'ms');
 
+const loadingSpinner = document.getElementById('loading-spinner');
 const solutionInput = document.getElementById('solution-input');
 const randSolution = document.getElementById('rand-solution');
 const autoSolve = document.getElementById('auto-solve');
 const botOutput = document.getElementById('bot-output');
+
+loadingSpinner.classList.add('hidden');
 
 solutionInput.addEventListener('keydown', (e) => {
   setTimeout(() => {
@@ -74,8 +77,10 @@ async function solve() {
   botOutput.innerText = '';
 
   inProgress = true;
+  loadingSpinner.classList.remove('hidden');
   await autoplay(answer);
   inProgress = false;
+  loadingSpinner.classList.add('hidden');
 }
 
 /**
@@ -610,6 +615,8 @@ async function autoplay(answer = answers[rand(answers.length - 1)]) {
   let tries = 1;
   while (guess !== answer) {
     console.log('');
+    console.log('- - - - - - -');
+    console.log('');
     guess = await game(...clues);
     clues.push(getClue(answer, guess));
     await logGuess(guess, clues[clues.length - 1]);
@@ -617,7 +624,7 @@ async function autoplay(answer = answers[rand(answers.length - 1)]) {
   }
 
   await console.log(
-      `done in %c${tries}%c ${tries > 1 ? 'tries' : 'try'}, ${
+      `done in %c${tries}%c ${tries > 1 ? 'guesses' : 'guess'}, ${
           Math.round(performance.now() - start)}ms`,
       'color:#9575cd', 'color:unset');
   await scrollToBottom();
@@ -646,7 +653,10 @@ async function logGuess(guess, clue) {
     clueStr[i + 1] = clue.slice(i, i + 2);
     colors[i >> 1] = clueCSS[clue[i + 1]];
   }
-  await console.log(`guess: ${guess} -> ${clueStr.join('')}`, ...colors);
+  await console.log(
+      `guess: %c${guess}%c ⇨ ${clueStr.join('')}`,
+      'background-color:teal;color:black;',
+      'background-color:unset;color:unset;', ...colors);
 }
 
 /** Shuffles an array in place. */
