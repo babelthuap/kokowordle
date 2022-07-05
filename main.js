@@ -539,7 +539,7 @@ async function bestGuess_smallSolutionSpace_parallel(possibleAnswers) {
   // If bestScore is <= the number of possibleAnswers, then we've already found
   // the best guess. No need to check the other guesses.
   if (bestScore > possibleAnswers.length) {
-    const ranges_ = distributeRange(0, answers.length);
+    const ranges_ = distributeRange(0, guesses.length);
     const tasks_ = ranges_.map(([startIndex, endIndex], workerIndex) => {
       return new Promise(async (resolve) => {
         workers[workerIndex].postMessage({
