@@ -1,5 +1,5 @@
-shuffle(answers);
-shuffle(guesses);
+answers.sort();
+guesses.sort();
 console.log('loaded', Math.round(performance.now()), 'ms');
 
 const loadingSpinner = document.getElementById('loading-spinner');
@@ -81,6 +81,12 @@ async function solve() {
   await autoplay(answer);
   inProgress = false;
   loadingSpinner.classList.add('hidden');
+}
+
+const HARDWARE_CONCURRENCY = navigator.hardwareConcurrency;
+const workers = new Array(HARDWARE_CONCURRENCY);
+for (let id = 0; id < HARDWARE_CONCURRENCY; id++) {
+  workers[id] = new Worker('worker.js');
 }
 
 /**
@@ -481,45 +487,71 @@ function getSolutionSpaceStats_earlyExit(
  * Finds the list of guesses that will minimize the size of the filtered
  * solution space.
  */
-function bestGuess_smallSolutionSpace_opt(possibleAnswers) {
+async function bestGuess_smallSolutionSpace_parallel(possibleAnswers) {
   const start = performance.now();
 
   let bestScore = Infinity;
-  const guessData = [];
+  let guessData = [];
 
-  // Try the possible answers first
-  for (const guess of possibleAnswers) {
-    testGuess(guess);
-  }
+  const ranges = distributeRange(0, possibleAnswers.length);
+  const tasks = ranges.map(([startIndex, endIndex], workerIndex) => {
+    return new Promise(async (resolve) => {
+      workers[workerIndex].postMessage({
+        checkPossibleAnswers: true,
+        possibleAnswers: possibleAnswers,
+        startIndex,
+        endIndex,
+      });
+      const workerGuessData = await new Promise(resolve => {
+        workers[workerIndex].onmessage = (e) => {
+          resolve(e.data);
+        };
+      });
+      if (workerGuessData.length > 0) {
+        const workerBestScore = workerGuessData[0].stats.score;
+        if (workerBestScore < bestScore) {
+          guessData = workerGuessData;
+          bestScore = workerBestScore;
+        } else if (workerBestScore === bestScore) {
+          guessData.push(...workerGuessData);
+        }
+      }
+      resolve();
+    });
+  });
+  await Promise.all(tasks);
 
   // If bestScore is <= the number of possibleAnswers, then we've already found
   // the best guess. No need to check the other guesses.
   if (bestScore > possibleAnswers.length) {
-    const alreadyTried = new Set(possibleAnswers);
-    for (const guess of guesses) {
-      if (alreadyTried.has(guess)) {
-        continue;
-      }
-      testGuess(guess);
-    }
-  }
-
-  // Calculates the stats for a guess and adds it to the guessData list if it's
-  // equal to or better than the existing guesses.
-  function testGuess(guess) {
-    clueRegexesMemo.clear();
-    const stats =
-        getSolutionSpaceStats_earlyExit(possibleAnswers, guess, bestScore);
-    if (stats === undefined) {
-      return;
-    }
-    if (stats.score < bestScore) {
-      guessData.length = 0;
-      guessData.push({guess, stats});
-      bestScore = stats.score;
-    } else if (stats.score === bestScore) {
-      guessData.push({guess, stats});
-    }
+    const ranges_ = distributeRange(0, answers.length);
+    const tasks_ = ranges_.map(([startIndex, endIndex], workerIndex) => {
+      return new Promise(async (resolve) => {
+        workers[workerIndex].postMessage({
+          checkPossibleAnswers: false,
+          possibleAnswers: possibleAnswers,
+          startIndex,
+          endIndex,
+          bestScore,
+        });
+        const workerGuessData = await new Promise(resolve => {
+          workers[workerIndex].onmessage = (e) => {
+            resolve(e.data);
+          };
+        });
+        if (workerGuessData.length > 0) {
+          const workerBestScore = workerGuessData[0].stats.score;
+          if (workerBestScore < bestScore) {
+            guessData = workerGuessData;
+            bestScore = workerBestScore;
+          } else if (workerBestScore === bestScore) {
+            guessData.push(...workerGuessData);
+          }
+        }
+        resolve();
+      });
+    });
+    await Promise.all(tasks_);
   }
 
   // Turn `score` into `avgSolutions`.
@@ -531,6 +563,59 @@ function bestGuess_smallSolutionSpace_opt(possibleAnswers) {
   console.log(`${Math.round(performance.now() - start)}ms`);
   return guessData;
 }
+
+/** start and end work as in `slice` */
+function distributeRange(start, end) {
+  const numTasks = end - start;
+  if (numTasks <= HARDWARE_CONCURRENCY) {
+    // Assign one task per worker
+    const ranges = new Array(numTasks);
+    for (let i = 0; i < numTasks; i++) {
+      ranges[i] = [start + i, start + i + 1];
+    }
+    return ranges;
+  } else {
+    // Try to distribute tasks evenly. Give the extras to the low workers.
+    const ranges = new Array(HARDWARE_CONCURRENCY);
+    const tasksPerWorker = Math.floor(numTasks / HARDWARE_CONCURRENCY);
+    const remainder = numTasks % HARDWARE_CONCURRENCY;
+    let taskIndex = 0;
+    for (let i = 0; i < remainder; i++) {
+      ranges[i] = [taskIndex, taskIndex + tasksPerWorker + 1];
+      taskIndex += tasksPerWorker + 1;
+    }
+    for (let i = remainder; i < HARDWARE_CONCURRENCY; i++) {
+      ranges[i] = [taskIndex, taskIndex + tasksPerWorker];
+      taskIndex += tasksPerWorker;
+    }
+    return ranges;
+  }
+}
+
+a1 = [
+  'BOBBY', 'BONGO', 'BONUS', 'BOOBY', 'BOOST', 'BOOTH', 'BOOTY', 'BOOZY',
+  'BOSOM', 'BOSSY', 'BOTCH', 'BOUGH', 'BOUND', 'BUDDY', 'BUGGY', 'BUNCH',
+  'BUNNY', 'BUSHY', 'BUTCH', 'BUXOM', 'CHOCK', 'CHUCK', 'CHUMP', 'CHUNK',
+  'COMFY', 'CONCH', 'CONDO', 'COUCH', 'COUGH', 'COUNT', 'DODGY', 'DONUT',
+  'DOUBT', 'DOUGH', 'DOWDY', 'DOWNY', 'DUCHY', 'DUMMY', 'DUMPY', 'DUSKY',
+  'DUSTY', 'DUTCH', 'FOCUS', 'FOGGY', 'FOUND', 'FUNKY', 'FUNNY', 'FUSSY',
+  'FUZZY', 'GHOST', 'GOODY', 'GOOFY', 'GUMBO', 'GUMMY', 'GUPPY', 'GUSTO',
+  'GUSTY', 'GYPSY', 'HOBBY', 'HOUND', 'HOWDY', 'HUMPH', 'HUMUS', 'HUNCH',
+  'HUNKY', 'HUSKY', 'HUSSY', 'HUTCH', 'JOUST', 'JUMBO', 'JUMPY', 'JUNTO',
+  'KNOCK', 'KNOWN', 'MONTH', 'MOODY', 'MOSSY', 'MOTTO', 'MOUND', 'MOUNT',
+  'MOUTH', 'MUCKY', 'MUCUS', 'MUDDY', 'MUMMY', 'MUNCH', 'MUSHY', 'MUSKY',
+  'MUSTY', 'NOTCH', 'NUTTY', 'NYMPH', 'OUGHT', 'OUTDO', 'OUTGO', 'PHONY',
+  'PHOTO', 'POOCH', 'POPPY', 'POUCH', 'POUND', 'POUTY', 'PUDGY', 'PUFFY',
+  'PUNCH', 'PUPPY', 'PUSHY', 'PUTTY', 'PYGMY', 'QUOTH', 'SCOFF', 'SCOOP',
+  'SCOUT', 'SHOCK', 'SHOOK', 'SHOOT', 'SHOUT', 'SHOWN', 'SHOWY', 'SHUCK',
+  'SHUNT', 'SHUSH', 'SKUNK', 'SMOCK', 'SMOKY', 'SNOOP', 'SNOUT', 'SNOWY',
+  'SNUCK', 'SNUFF', 'SOGGY', 'SOOTH', 'SOOTY', 'SOUND', 'SOUTH', 'SPOOF',
+  'SPOOK', 'SPOON', 'SPOUT', 'SPUNK', 'STOCK', 'STOMP', 'STONY', 'STOOD',
+  'STOOP', 'STOUT', 'STUCK', 'STUDY', 'STUFF', 'STUMP', 'STUNG', 'STUNK',
+  'STUNT', 'SUNNY', 'SWOON', 'SWOOP', 'SWUNG', 'SYNOD', 'THONG', 'THUMB',
+  'THUMP', 'TODDY', 'TOOTH', 'TOUCH', 'TOUGH', 'UNCUT', 'VOUCH', 'WHOOP',
+  'WOODY', 'WOOZY', 'WOUND', 'YOUNG', 'YOUTH'
+];
 
 /**
  * Top 47 guesses from the output of bestGuess_smallSolutionSpace_opt() sorted
@@ -587,7 +672,8 @@ async function game(...clues) {
 
   await console.log('Calculating...');
   await scrollToBottom();
-  const topGuesses = bestGuess_smallSolutionSpace_opt(possibleAnswers);
+  const topGuesses =
+      await bestGuess_smallSolutionSpace_parallel(possibleAnswers);
 
   await console.log('Best next guesses:');
   shuffle(topGuesses);
