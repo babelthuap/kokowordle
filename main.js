@@ -84,6 +84,8 @@ async function solve() {
 }
 
 const HARDWARE_CONCURRENCY = navigator.hardwareConcurrency;
+botOutput.innerText = `concurrency: ${HARDWARE_CONCURRENCY}`;
+
 const workers = new Array(HARDWARE_CONCURRENCY);
 for (let id = 0; id < HARDWARE_CONCURRENCY; id++) {
   workers[id] = new Worker('worker.js');
