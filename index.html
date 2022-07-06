@@ -6,168 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KokoWordle</title>
-  <style>
-    body {
-      background-color: black;
-    }
-
-    body,
-    a {
-      color: white;
-    }
-
-    body,
-    a,
-    button,
-    input {
-      font-family: monospace;
-    }
-
-    .container {
-      max-width: 600px;
-      min-height: calc(100vh / 2);
-      margin: auto;
-      padding: 16px;
-      padding-top: 1px;
-      border-radius: 8px;
-      background-color: #222020;
-    }
-
-    .separator {
-      margin: 16px 0px;
-    }
-
-    .bubble {
-      background-color: black;
-      border-radius: 8px;
-      border: 1px solid grey;
-      margin-top: 16px;
-      padding: 8px;
-    }
-
-    @media (max-width: 650px) {
-      body {
-        margin: 0;
-      }
-
-      .container {
-        margin: 0;
-        border-radius: 0;
-      }
-    }
-
-    #solution-input {
-      width: 64px;
-    }
-
-    .error {
-      color: red;
-    }
-
-    #loading-spinner {
-      position: fixed;
-      background-color: rgba(0, 0, 0, 0.7);
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    #loading-spinner.hidden {
-      display: none;
-    }
-
-    /* Loading spinner from https://loading.io/css/ */
-
-    .lds-grid {
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 8px;
-      display: inline-block;
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      margin: auto;
-    }
-
-    .lds-grid div {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #fff;
-      animation: lds-grid 1.2s linear infinite;
-    }
-
-    .lds-grid div:nth-child(1) {
-      top: 8px;
-      left: 8px;
-      animation-delay: 0s;
-    }
-
-    .lds-grid div:nth-child(2) {
-      top: 8px;
-      left: 32px;
-      animation-delay: -0.4s;
-    }
-
-    .lds-grid div:nth-child(3) {
-      top: 8px;
-      left: 56px;
-      animation-delay: -0.8s;
-    }
-
-    .lds-grid div:nth-child(4) {
-      top: 32px;
-      left: 8px;
-      animation-delay: -0.4s;
-    }
-
-    .lds-grid div:nth-child(5) {
-      top: 32px;
-      left: 32px;
-      animation-delay: -0.8s;
-    }
-
-    .lds-grid div:nth-child(6) {
-      top: 32px;
-      left: 56px;
-      animation-delay: -1.2s;
-    }
-
-    .lds-grid div:nth-child(7) {
-      top: 56px;
-      left: 8px;
-      animation-delay: -0.8s;
-    }
-
-    .lds-grid div:nth-child(8) {
-      top: 56px;
-      left: 32px;
-      animation-delay: -1.2s;
-    }
-
-    .lds-grid div:nth-child(9) {
-      top: 56px;
-      left: 56px;
-      animation-delay: -1.6s;
-    }
-
-    @keyframes lds-grid {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.5;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -187,7 +26,10 @@
   <div class="container">
     <h1>KokoWordle Solver</h1>
     <p>
-      Based on the <a href="https://www.nytimes.com/games/wordle/index.html">official Wordle Game</a>
+      Based on the <a href="https://www.nytimes.com/games/wordle/index.html">official Wordle Game</a>.
+    </p>
+    <p>
+      Enter a solution and let the KokoWordle Solver try to guess it.
     </p>
     <p>
       solution = <input type="text" id="solution-input">
@@ -199,6 +41,5 @@
     <hr class="separator">
     <div id="bot-output"></div>
   </div>
-  <script src="word-lists.js"></script>
-  <script src="main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
