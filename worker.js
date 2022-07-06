@@ -38,8 +38,8 @@ function getBestGuess({
 
   // Try the possible solutions
   if (checkPossibleSolutions) {
-    for (const guess of possibleSolutions.slice(startIndex, endIndex)) {
-      testGuess(guess);
+    for (let i = startIndex; i < endIndex; i++) {
+      testGuess(possibleSolutions[i]);
     }
     postMessage(guessData);
     return;
@@ -47,7 +47,8 @@ function getBestGuess({
 
   // Try the other guesses
   const alreadyTried = new Set(possibleSolutions);
-  for (const guess of guesses.slice(startIndex, endIndex)) {
+  for (let i = startIndex; i < endIndex; i++) {
+    const guess = guesses[i];
     if (alreadyTried.has(guess)) {
       continue;
     }
