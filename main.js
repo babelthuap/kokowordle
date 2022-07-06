@@ -1,5 +1,5 @@
+import {buildClueRegexes, getClue} from './clue-logic.js';
 import {log, logGuess, resetBubble, scrollToBottom} from './logger.js';
-import {buildClueRegexes, getClue} from './solver.js';
 import {distributeRange, El, HARDWARE_CONCURRENCY, isMobile, rand, shuffle} from './util.js';
 
 // If on mobile, restrict guesses to the possible solutions
@@ -133,7 +133,7 @@ async function autoplay(solution, {solutions, guesses}) {
 /** Makes a guess in one step of a Wordle game. */
 async function nextStep({solutions, guesses}, ...clues) {
   if (clues.length === 0) {
-    const guess = getFirstGuess();
+    const guess = getFirstGuess({solutions});
     await log('Here\'s a good first guess:', guess);
     return guess;
   }
@@ -272,7 +272,7 @@ async function getBestGuess({possibleSolutions, guesses}) {
  * Top 100 guesses from the output of bestGuess() sorted by `avgSolutions /
  * numGroups`.
  */
-const FIRST_GUESSES = [
+let FIRST_GUESSES = [
   'RAISE', 'ROATE', 'RAILE', 'SALET', 'REAST', 'SOARE', 'SLATE', 'CRATE',
   'TRACE', 'ORATE', 'CARTE', 'TALER', 'IRATE', 'CARLE', 'RAINE', 'RATEL',
   'ARISE', 'CARET', 'ARIEL', 'ARTEL', 'LATER', 'TASER', 'SAINE', 'SANER',
@@ -292,7 +292,12 @@ const FIRST_GUESSES = [
  * Gets a random first guess from the list of best guesses (above), weighted
  * towards the top of the list.
  */
-function getFirstGuess() {
+function getFirstGuess({solutions}) {
+  if (!getFirstGuess.initialized && isMobile()) {
+    FIRST_GUESSES = FIRST_GUESSES.filter(guess => solutions.includes(guess));
+  }
+  getFirstGuess.initialized = true;
+
   // Sum from 1 .. num guesses
   const sum = FIRST_GUESSES.length * (FIRST_GUESSES.length + 1) / 2;
   const r = Math.floor(sum * Math.random());
@@ -310,8 +315,9 @@ function getFirstGuess() {
   return FIRST_GUESSES[0];
 }
 
-/** Filters the `solutions` list to those that satisfy all the given clues. */
 const possibleSolutionsMemo = new Map();
+
+/** Filters the `solutions` list to those that satisfy all the given clues. */
 function getPossibleSolutions({solutions}, ...clues) {
   if (clues.length === 0) {
     return solutions;
@@ -326,6 +332,14 @@ function getPossibleSolutions({solutions}, ...clues) {
       getPossibleSolutions({solutions}, ...clues.slice(0, -1));
   possibleSolutions = filterWords(possibleSolutions, clues[clues.length - 1]);
 
+  // Only add to the memo if we're working on the same game. Otherwise, clear
+  // the memo and start over.
+  for (const existingKey of possibleSolutionsMemo.keys()) {
+    if (!existingKey.startsWith(clues[0])) {
+      possibleSolutionsMemo.clear();
+    }
+    break;
+  }
   possibleSolutionsMemo.set(key, possibleSolutions);
   return possibleSolutions;
 }

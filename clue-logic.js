@@ -156,6 +156,7 @@ export function getClue(solution, guess) {
 }
 
 const charFreqsMemo = new Map();
+
 /** freqs := {char: count} for each char in word */
 function getCharFreqs(word) {
   const freqs = {};

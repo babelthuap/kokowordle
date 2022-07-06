@@ -1,4 +1,4 @@
-import {buildClueRegexes, clearClueRegexesMemo, getClue} from './solver.js';
+import {buildClueRegexes, clearClueRegexesMemo, getClue} from './clue-logic.js';
 
 /** The list of possible guesses, which will be sent from the main thread. */
 let guesses = null;
