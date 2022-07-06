@@ -13,6 +13,12 @@ onmessage = ({data}) => {
     case 'GET_BEST_GUESS':
       getBestGuess(data.params);
       break;
+    case 'PUSH_SOLUTION':
+      guesses.push(data.solution);
+      break;
+    case 'POP_SOLUTION':
+      guesses.pop();
+      break;
     default:
       throw new Error('Unknown event type', data.type);
   }
