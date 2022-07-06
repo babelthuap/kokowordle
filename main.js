@@ -90,10 +90,10 @@ async function solve({solutions, guesses}) {
     return;
   }
   const solution = El.solutionInput.value.toUpperCase();
-  let removeWhenDone = false;
   if (!solutions.includes(solution)) {
-    solutions.push(solution);
-    removeWhenDone = true;
+    El.botOutput.classList.add('error');
+    El.botOutput.innerText = `"${solution}" is not a valid solution.`;
+    return;
   }
   El.botOutput.classList = '';
   El.botOutput.innerHTML = '';
@@ -104,10 +104,6 @@ async function solve({solutions, guesses}) {
   await autoplay(solution, {solutions, guesses});
   inProgress = false;
   El.loadingSpinner.classList.add('hidden');
-
-  if (removeWhenDone) {
-    solutions.pop();
-  }
 }
 
 /** Plays a full game of Wordle trying to guess `solution`. */
