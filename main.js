@@ -83,7 +83,7 @@ async function solve({solutions, guesses}) {
     return;
   }
 
-  if (El.solutionInput.value.length === 0) {
+  if (El.solutionInput.value.length !== 5) {
     El.botOutput.classList.add('error');
     El.botOutput.innerText =
         'Please enter a solution for the KokoWordle Solver to try to guess.';
