@@ -12,6 +12,11 @@ export async function log(...args) {
     const spans = args[0].split('%c').map((str, i) => {
       if (i === 0) {
         return `<span>${str}</span>`;
+      } else if (args[i].startsWith('background-color:teal')) {
+        return `<a target="_blank" href="https://en.wiktionary.org/wiki/${
+            str === 'ROATE' ?
+                str :
+                str.toLowerCase()}#English" style="${args[i]}">${str}</a>`;
       } else {
         return `<span style="${args[i]}">${str}</span>`;
       }
@@ -73,4 +78,3 @@ export async function logGuess(guess, clue) {
       'background-color:teal;color:black;',
       'background-color:unset;color:unset;', ...colors);
 }
-
